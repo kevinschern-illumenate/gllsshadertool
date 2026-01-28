@@ -1,7 +1,4 @@
 // Geometric Loop - Rotating geometric patterns with perfect loop
-// @param layers float 2.0 8.0 5.0
-// @param speed float 0.5 3.0 1.0
-// @param glow float 0.0 2.0 1.0
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Normalized coordinates centered at origin
@@ -36,11 +33,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         float ring = abs(d - 0.5 - fi * 0.15);
         ring = smoothstep(0.05, 0.0, ring);
         
-        // Color per layer
+        // Color per layer - use TAU/3 for 120 degree hue shifts
         vec3 layerCol = vec3(
             0.5 + 0.5 * loopSin(t + fi),
-            0.5 + 0.5 * loopSin(t + fi + 2.094),
-            0.5 + 0.5 * loopSin(t + fi + 4.188)
+            0.5 + 0.5 * loopSin(t + fi + TAU / 3.0),
+            0.5 + 0.5 * loopSin(t + fi + 2.0 * TAU / 3.0)
         );
         
         col += ring * layerCol / float(numLayers);

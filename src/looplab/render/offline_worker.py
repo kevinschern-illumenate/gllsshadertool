@@ -209,8 +209,12 @@ class OfflineRenderWorker(QObject):
             
             for sample in range(self.accumulation_samples):
                 # Apply small jitter for AA (deterministic based on frame and sample)
-                jitter_x = ((sample % 4) / 4.0 - 0.5) / render_width
-                jitter_y = ((sample // 4) / 4.0 - 0.5) / render_height
+                # Jitter is in pixel units for the shader to use
+                jitter_x = (sample % 4) / 4.0 - 0.5
+                jitter_y = (sample // 4) / 4.0 - 0.5
+                
+                # Set jitter uniform for shader to offset pixel coordinates
+                uniform_manager.set_jitter(jitter_x, jitter_y)
                 
                 # Render with jitter
                 self._render_target.bind()
@@ -235,6 +239,9 @@ class OfflineRenderWorker(QObject):
                         render_height, render_width, 4
                     ).astype(np.float32)
                     accumulator += frame_data
+            
+            # Reset jitter
+            uniform_manager.set_jitter(0.0, 0.0)
             
             # Average samples
             accumulator /= self.accumulation_samples

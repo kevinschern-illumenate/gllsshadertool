@@ -56,6 +56,8 @@ uniform float u_phase;       // 0..2π (loop-safe)
 uniform int u_frame;         // Current frame index
 uniform float u_duration;    // 30.0 seconds
 uniform float u_seed;        // Stable randomness seed
+uniform vec2 u_loop;         // vec2(cos(u_phase), sin(u_phase))
+uniform vec2 u_jitter;       // Subpixel jitter for accumulation AA
 ```
 
 ### Standard Entry Point (Shadertoy-style)

@@ -1,7 +1,4 @@
 // Plasma Loop - Classic plasma effect with perfect loop
-// @param speed float 0.1 5.0 1.0
-// @param complexity float 1.0 10.0 4.0
-// @param color_shift float 0.0 1.0 0.0
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Normalized coordinates
@@ -32,11 +29,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Normalize
     v = v * 0.25 + 0.5;
     
-    // Color palette (loop-safe)
+    // Color palette (loop-safe) - use TAU/3 for 120 degree hue shifts
     vec3 col;
     col.r = sin(v * PI + t) * 0.5 + 0.5;
-    col.g = sin(v * PI + t + 2.094) * 0.5 + 0.5; // +2π/3
-    col.b = sin(v * PI + t + 4.188) * 0.5 + 0.5; // +4π/3
+    col.g = sin(v * PI + t + TAU / 3.0) * 0.5 + 0.5;
+    col.b = sin(v * PI + t + 2.0 * TAU / 3.0) * 0.5 + 0.5;
     
     fragColor = vec4(col, 1.0);
 }

@@ -26,6 +26,7 @@ class StandardUniforms:
         duration: Loop duration in seconds
         seed: Random seed for reproducibility
         loop: Loop vector (cos(phase), sin(phase))
+        jitter: Subpixel jitter for accumulation AA (x, y in pixels)
     """
     
     resolution: tuple[float, float] = (1920.0, 1080.0)
@@ -35,6 +36,7 @@ class StandardUniforms:
     duration: float = 30.0
     seed: float = 0.0
     loop: tuple[float, float] = (1.0, 0.0)  # cos(0), sin(0)
+    jitter: tuple[float, float] = (0.0, 0.0)  # Subpixel jitter for AA
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert uniforms to a dictionary for OpenGL binding."""
@@ -46,6 +48,7 @@ class StandardUniforms:
             "u_duration": self.duration,
             "u_seed": self.seed,
             "u_loop": self.loop,
+            "u_jitter": self.jitter,
         }
 
 
@@ -92,6 +95,10 @@ class UniformManager:
     def set_seed(self, seed: float):
         """Update the random seed."""
         self.standard.seed = seed
+    
+    def set_jitter(self, jitter_x: float, jitter_y: float):
+        """Set subpixel jitter for accumulation AA."""
+        self.standard.jitter = (jitter_x, jitter_y)
     
     def add_user_param(self, param: UserParameter):
         """Add or update a user parameter."""

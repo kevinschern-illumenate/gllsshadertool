@@ -91,9 +91,14 @@ uniform int u_frame;
 uniform float u_duration;
 uniform float u_seed;
 uniform vec2 u_loop;
+uniform vec2 u_jitter;
 
 // Output
 out vec4 fragColor;
+
+// Constants
+#define PI 3.14159265359
+#define TAU 6.28318530718
 """
 
 
@@ -122,10 +127,12 @@ float loopCos(float phase) {
 def get_main_wrapper() -> str:
     """Get the main() wrapper for Shadertoy-style shaders."""
     return """
-// Main wrapper
+// Main wrapper - applies jitter for accumulation AA
 void main() {
     vec4 col;
-    mainImage(col, gl_FragCoord.xy);
+    // Apply subpixel jitter for anti-aliasing
+    vec2 jitteredCoord = gl_FragCoord.xy + u_jitter;
+    mainImage(col, jitteredCoord);
     fragColor = col;
 }
 """
@@ -333,7 +340,7 @@ class ShaderManager:
         
         standard_uniforms = [
             "u_resolution", "u_time", "u_phase", "u_frame",
-            "u_duration", "u_seed", "u_loop"
+            "u_duration", "u_seed", "u_loop", "u_jitter"
         ]
         
         for name in standard_uniforms:

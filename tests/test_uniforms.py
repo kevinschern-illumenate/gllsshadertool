@@ -26,6 +26,7 @@ class TestStandardUniforms:
         assert uniforms.duration == 30.0
         assert uniforms.seed == 0.0
         assert uniforms.loop == (1.0, 0.0)
+        assert uniforms.jitter == (0.0, 0.0)
     
     def test_to_dict(self):
         """Test conversion to dictionary."""
@@ -38,6 +39,7 @@ class TestStandardUniforms:
         assert d["u_time"] == 5.0
         assert d["u_phase"] == 1.047
         assert d["u_resolution"] == (1920.0, 1080.0)
+        assert d["u_jitter"] == (0.0, 0.0)
 
 
 class TestUniformManager:

@@ -1,7 +1,4 @@
 // Domain Warp Loop - Warped noise patterns with perfect loop
-// @param scale float 1.0 10.0 3.0
-// @param warp_strength float 0.0 2.0 1.0
-// @param speed float 0.5 3.0 1.0
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Normalized coordinates

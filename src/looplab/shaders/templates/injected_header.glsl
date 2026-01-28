@@ -11,6 +11,7 @@ uniform int u_frame;         // Current frame index
 uniform float u_duration;    // Loop duration in seconds (default: 30.0)
 uniform float u_seed;        // Random seed for reproducibility
 uniform vec2 u_loop;         // vec2(cos(u_phase), sin(u_phase))
+uniform vec2 u_jitter;       // Subpixel jitter for accumulation AA (in pixels)
 
 // Output color
 out vec4 fragColor;

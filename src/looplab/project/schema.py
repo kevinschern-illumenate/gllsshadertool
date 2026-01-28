@@ -45,7 +45,7 @@ def validate_project_data(data: Dict[str, Any]) -> tuple[bool, str]:
         if "render_scale" in preview:
             scale = preview["render_scale"]
             if not isinstance(scale, (int, float)) or scale <= 0 or scale > 1:
-                return False, "Invalid render_scale (must be 0-1)"
+                return False, "Invalid render_scale (must be greater than 0 and at most 1)"
     
     # Validate offline settings if present
     if "offline" in data:
