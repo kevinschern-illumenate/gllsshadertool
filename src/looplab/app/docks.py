@@ -238,6 +238,13 @@ class ParametersDock(QDockWidget):
     randomize_seed_clicked = Signal()
     parameter_changed = Signal(str, object)  # name, value
     
+    # Library compatibility signals
+    complexity_changed = Signal(int)
+    force_changed = Signal(float)
+    force2_changed = Signal(float)
+    base_hue_changed = Signal(float)
+    color_mode_changed = Signal(int)
+    
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__("Parameters", parent)
         self.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | 
@@ -268,7 +275,58 @@ class ParametersDock(QDockWidget):
         
         self.layout.addWidget(seed_group)
         
-        # Parameters container
+        # Library compatibility controls
+        lib_group = QGroupBox("Shader Controls")
+        lib_layout = QFormLayout(lib_group)
+        
+        # Complexity (iComplexity) - 1 to 10
+        self.complexity_spin = QSpinBox()
+        self.complexity_spin.setRange(1, 10)
+        self.complexity_spin.setValue(5)
+        self.complexity_spin.setToolTip("Detail/quality level (iComplexity)")
+        self.complexity_spin.valueChanged.connect(self.complexity_changed)
+        lib_layout.addRow("Complexity:", self.complexity_spin)
+        
+        # Force (iForce) - 0 to 10
+        self.force_spin = QDoubleSpinBox()
+        self.force_spin.setRange(0.0, 10.0)
+        self.force_spin.setValue(5.0)
+        self.force_spin.setDecimals(2)
+        self.force_spin.setSingleStep(0.1)
+        self.force_spin.setToolTip("Primary intensity (iForce)")
+        self.force_spin.valueChanged.connect(self.force_changed)
+        lib_layout.addRow("Force:", self.force_spin)
+        
+        # Force2 (iForce2) - 0 to 10
+        self.force2_spin = QDoubleSpinBox()
+        self.force2_spin.setRange(0.0, 10.0)
+        self.force2_spin.setValue(5.0)
+        self.force2_spin.setDecimals(2)
+        self.force2_spin.setSingleStep(0.1)
+        self.force2_spin.setToolTip("Secondary intensity (iForce2)")
+        self.force2_spin.valueChanged.connect(self.force2_changed)
+        lib_layout.addRow("Force 2:", self.force2_spin)
+        
+        # Base Hue (iBaseHueRad) - 0 to 6.28 (TAU)
+        self.hue_spin = QDoubleSpinBox()
+        self.hue_spin.setRange(0.0, 6.28)
+        self.hue_spin.setValue(0.0)
+        self.hue_spin.setDecimals(2)
+        self.hue_spin.setSingleStep(0.1)
+        self.hue_spin.setToolTip("Base hue in radians (iBaseHueRad)")
+        self.hue_spin.valueChanged.connect(self.base_hue_changed)
+        lib_layout.addRow("Base Hue:", self.hue_spin)
+        
+        # Color Mode (mColorMode) - 0 or 1
+        self.color_mode_combo = QComboBox()
+        self.color_mode_combo.addItems(["Mode 0", "Mode 1"])
+        self.color_mode_combo.setToolTip("Color mode toggle (mColorMode)")
+        self.color_mode_combo.currentIndexChanged.connect(self.color_mode_changed)
+        lib_layout.addRow("Color Mode:", self.color_mode_combo)
+        
+        self.layout.addWidget(lib_group)
+        
+        # Parameters container (for @param style parameters)
         self.params_group = QGroupBox("Shader Parameters")
         self.params_layout = QFormLayout(self.params_group)
         self.layout.addWidget(self.params_group)
@@ -442,7 +500,8 @@ class ExportDock(QDockWidget):
         self.codec_combo = QComboBox()
         self.codec_combo.addItems([
             "h264_high", "h264_medium", "h264_compat",
-            "h265_high", "prores_422", "prores_4444"
+            "h265_high", "prores_422", "prores_4444",
+            "avi_mjpeg", "avi_uncompressed", "avi_huffyuv"
         ])
         codec_layout.addWidget(self.codec_combo)
         options_layout.addLayout(codec_layout)

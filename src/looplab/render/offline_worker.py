@@ -50,6 +50,13 @@ class OfflineRenderWorker(QObject):
         self.supersample_scale: int = 1
         self.accumulation_samples: int = 1
         
+        # Library compatibility parameters
+        self.complexity: int = 5
+        self.force: float = 5.0
+        self.force2: float = 5.0
+        self.base_hue_rad: float = 0.0
+        self.color_mode: int = 0
+        
         # Control
         self._cancelled = False
         
@@ -70,7 +77,12 @@ class OfflineRenderWorker(QObject):
         duration: float = 30.0,
         seed: float = 0.0,
         supersample_scale: int = 1,
-        accumulation_samples: int = 1
+        accumulation_samples: int = 1,
+        complexity: int = 5,
+        force: float = 5.0,
+        force2: float = 5.0,
+        base_hue_rad: float = 0.0,
+        color_mode: int = 0
     ):
         """Configure render settings.
         
@@ -84,6 +96,11 @@ class OfflineRenderWorker(QObject):
             seed: Random seed for reproducibility
             supersample_scale: Supersample factor (1, 2, or 4)
             accumulation_samples: Number of samples per frame for AA
+            complexity: Shader complexity/detail level (1-10)
+            force: Primary intensity parameter (0-10)
+            force2: Secondary intensity parameter (0-10)
+            base_hue_rad: Base hue in radians (0-TAU)
+            color_mode: Color mode toggle (0 or 1)
         """
         self.shader_source = shader_source
         self.output_dir = output_dir
@@ -94,6 +111,11 @@ class OfflineRenderWorker(QObject):
         self.seed = seed
         self.supersample_scale = max(1, min(4, supersample_scale))
         self.accumulation_samples = max(1, accumulation_samples)
+        self.complexity = complexity
+        self.force = force
+        self.force2 = force2
+        self.base_hue_rad = base_hue_rad
+        self.color_mode = color_mode
     
     def cancel(self):
         """Cancel the render operation."""
@@ -333,6 +355,13 @@ class OfflineRenderWorker(QObject):
         uniform_manager.set_resolution(float(render_width), float(render_height))
         uniform_manager.set_seed(self.seed)
         uniform_manager.standard.duration = self.duration
+        
+        # Set library compatibility parameters
+        uniform_manager.set_complexity(self.complexity)
+        uniform_manager.set_force(self.force)
+        uniform_manager.set_force2(self.force2)
+        uniform_manager.set_base_hue(self.base_hue_rad)
+        uniform_manager.set_color_mode(self.color_mode)
         
         total_frames = timeline.total_frames
         self.log_message.emit(f"Rendering {total_frames} frames...")

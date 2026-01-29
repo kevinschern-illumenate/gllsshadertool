@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import Qt, Slot, QFileSystemWatcher
+from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QTimer
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QDockWidget, QStatusBar, QMenuBar, QMenu,
@@ -51,8 +51,8 @@ class MainWindow(QMainWindow):
         # Connect signals
         self._connect_signals()
         
-        # Load default shader
-        self._load_default_shader()
+        # Defer loading default shader until GL context is ready
+        QTimer.singleShot(0, self._load_default_shader)
     
     def _setup_menu(self):
         """Set up the menu bar."""
@@ -185,6 +185,12 @@ class MainWindow(QMainWindow):
         # Parameters dock signals
         self.parameters_dock.seed_changed.connect(self._on_seed_changed)
         self.parameters_dock.randomize_seed_clicked.connect(self._randomize_seed)
+        self.parameters_dock.parameter_changed.connect(self._on_parameter_changed)
+        self.parameters_dock.complexity_changed.connect(self._on_complexity_changed)
+        self.parameters_dock.force_changed.connect(self._on_force_changed)
+        self.parameters_dock.force2_changed.connect(self._on_force2_changed)
+        self.parameters_dock.base_hue_changed.connect(self._on_base_hue_changed)
+        self.parameters_dock.color_mode_changed.connect(self._on_color_mode_changed)
         
         # Export dock signals
         self.export_dock.render_clicked.connect(self._start_render)
@@ -331,6 +337,47 @@ class MainWindow(QMainWindow):
         self.project.seed = seed
         self.parameters_dock.set_seed(seed)
     
+    @Slot(str, object)
+    def _on_parameter_changed(self, name: str, value):
+        """Handle user parameter change from dock.
+        
+        Args:
+            name: Parameter name
+            value: New parameter value
+        """
+        self.preview_widget.uniform_manager.set_user_param_value(name, value)
+        self.preview_widget.update()
+    
+    @Slot(int)
+    def _on_complexity_changed(self, complexity: int):
+        """Handle complexity change for library shaders."""
+        self.preview_widget.uniform_manager.set_complexity(complexity)
+        self.preview_widget.update()
+    
+    @Slot(float)
+    def _on_force_changed(self, force: float):
+        """Handle force/intensity change for library shaders."""
+        self.preview_widget.uniform_manager.set_force(force)
+        self.preview_widget.update()
+    
+    @Slot(float)
+    def _on_force2_changed(self, force2: float):
+        """Handle secondary force change for library shaders."""
+        self.preview_widget.uniform_manager.set_force2(force2)
+        self.preview_widget.update()
+    
+    @Slot(float)
+    def _on_base_hue_changed(self, hue: float):
+        """Handle base hue change for library shaders."""
+        self.preview_widget.uniform_manager.set_base_hue(hue)
+        self.preview_widget.update()
+    
+    @Slot(int)
+    def _on_color_mode_changed(self, mode: int):
+        """Handle color mode change for library shaders."""
+        self.preview_widget.uniform_manager.set_color_mode(mode)
+        self.preview_widget.update()
+    
     @Slot()
     def _start_render(self):
         """Start offline rendering."""
@@ -375,7 +422,12 @@ class MainWindow(QMainWindow):
             duration=self.project.duration,
             seed=self.project.seed,
             supersample_scale=settings.get("supersample_scale", 1),
-            accumulation_samples=settings.get("accumulation_samples", 1)
+            accumulation_samples=settings.get("accumulation_samples", 1),
+            complexity=self.preview_widget.uniform_manager.standard.complexity,
+            force=self.preview_widget.uniform_manager.standard.force,
+            force2=self.preview_widget.uniform_manager.standard.force2,
+            base_hue_rad=self.preview_widget.uniform_manager.standard.base_hue_rad,
+            color_mode=self.preview_widget.uniform_manager.standard.color_mode
         )
         
         # Connect worker signals

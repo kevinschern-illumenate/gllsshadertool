@@ -17,6 +17,7 @@ class VideoCodec(Enum):
     H264 = "h264"
     H265 = "h265"
     PRORES = "prores"
+    AVI = "avi"
 
 
 @dataclass
@@ -97,6 +98,34 @@ PRESETS = {
             "-pix_fmt", "yuva444p10le",
         ]
     ),
+    "avi_mjpeg": EncodingPreset(
+        name="AVI (Motion JPEG)",
+        codec=VideoCodec.AVI,
+        extension="avi",
+        ffmpeg_args=[
+            "-c:v", "mjpeg",
+            "-q:v", "3",  # Quality 1-31, lower is better
+            "-pix_fmt", "yuvj420p",
+        ]
+    ),
+    "avi_uncompressed": EncodingPreset(
+        name="AVI (Uncompressed)",
+        codec=VideoCodec.AVI,
+        extension="avi",
+        ffmpeg_args=[
+            "-c:v", "rawvideo",
+            "-pix_fmt", "rgb24",
+        ]
+    ),
+    "avi_huffyuv": EncodingPreset(
+        name="AVI (Lossless HuffYUV)",
+        codec=VideoCodec.AVI,
+        extension="avi",
+        ffmpeg_args=[
+            "-c:v", "huffyuv",
+            "-pix_fmt", "rgb24",
+        ]
+    ),
 }
 
 
@@ -106,8 +135,47 @@ def find_ffmpeg() -> Optional[str]:
     Returns:
         Path to FFmpeg or None if not found
     """
+    # First try the system PATH
     ffmpeg_path = shutil.which("ffmpeg")
-    return ffmpeg_path
+    if ffmpeg_path:
+        return ffmpeg_path
+    
+    # Check common installation locations on Windows
+    import os
+    common_paths = [
+        # Winget installation
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WinGet\Packages"),
+        # Chocolatey
+        r"C:\ProgramData\chocolatey\bin",
+        # Scoop
+        os.path.expandvars(r"%USERPROFILE%\scoop\shims"),
+        # Manual install locations
+        r"C:\ffmpeg\bin",
+        r"C:\Program Files\ffmpeg\bin",
+        r"C:\Program Files (x86)\ffmpeg\bin",
+    ]
+    
+    for base_path in common_paths:
+        if not os.path.exists(base_path):
+            continue
+        
+        # Direct check
+        direct_path = os.path.join(base_path, "ffmpeg.exe")
+        if os.path.isfile(direct_path):
+            return direct_path
+        
+        # Search in subdirectories (for winget packages)
+        try:
+            for root, dirs, files in os.walk(base_path):
+                if "ffmpeg.exe" in files:
+                    return os.path.join(root, "ffmpeg.exe")
+                # Limit search depth
+                if root.count(os.sep) - base_path.count(os.sep) > 4:
+                    break
+        except (PermissionError, OSError):
+            continue
+    
+    return None
 
 
 def get_ffmpeg_version() -> Optional[str]:

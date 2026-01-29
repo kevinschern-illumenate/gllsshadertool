@@ -339,8 +339,12 @@ class ShaderManager:
             return
         
         standard_uniforms = [
+            # LoopLab native uniforms
             "u_resolution", "u_time", "u_phase", "u_frame",
-            "u_duration", "u_seed", "u_loop", "u_jitter"
+            "u_duration", "u_seed", "u_loop", "u_jitter",
+            # Shadertoy/Library compatibility uniforms
+            "iResolution", "iTime", "iTimeDelta", "iFrame", "iMouse",
+            "iComplexity", "iForce", "iForce2", "iBaseHueRad", "mColorMode"
         ]
         
         for name in standard_uniforms:

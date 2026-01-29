@@ -8,6 +8,10 @@ This module manages the standard uniforms passed to shaders:
 - u_duration: Loop duration (float)
 - u_seed: Random seed for reproducibility (float)
 - u_loop: Loop vector cos/sin pair (vec2)
+
+Also provides Shadertoy/Library compatibility uniforms:
+- iResolution, iTime, iFrame, iMouse
+- iComplexity, iForce, iForce2, iBaseHueRad, mColorMode
 """
 
 from dataclasses import dataclass, field
@@ -27,6 +31,14 @@ class StandardUniforms:
         seed: Random seed for reproducibility
         loop: Loop vector (cos(phase), sin(phase))
         jitter: Subpixel jitter for accumulation AA (x, y in pixels)
+        
+        # Library compatibility
+        complexity: Detail/quality level (1-10)
+        force: Primary intensity (0-10)
+        force2: Secondary intensity (0-10)
+        base_hue_rad: Base hue in radians (0-TAU)
+        color_mode: Color mode toggle (0 or 1)
+        mouse: Mouse position (x, y, click_x, click_y)
     """
     
     resolution: tuple[float, float] = (1920.0, 1080.0)
@@ -38,9 +50,22 @@ class StandardUniforms:
     loop: tuple[float, float] = (1.0, 0.0)  # cos(0), sin(0)
     jitter: tuple[float, float] = (0.0, 0.0)  # Subpixel jitter for AA
     
+    # Library compatibility uniforms
+    complexity: int = 5
+    force: float = 5.0
+    force2: float = 5.0
+    base_hue_rad: float = 0.0
+    color_mode: int = 0
+    mouse: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
+    time_delta: float = 0.033  # ~30fps
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert uniforms to a dictionary for OpenGL binding."""
+        w, h = self.resolution
+        aspect = w / h if h > 0 else 1.0
+        
         return {
+            # LoopLab native uniforms
             "u_resolution": self.resolution,
             "u_time": self.time,
             "u_phase": self.phase,
@@ -49,6 +74,18 @@ class StandardUniforms:
             "u_seed": self.seed,
             "u_loop": self.loop,
             "u_jitter": self.jitter,
+            
+            # Shadertoy/Library compatibility uniforms
+            "iResolution": (w, h, aspect),
+            "iTime": self.time,
+            "iTimeDelta": self.time_delta,
+            "iFrame": self.frame,
+            "iMouse": self.mouse,
+            "iComplexity": self.complexity,
+            "iForce": self.force,
+            "iForce2": self.force2,
+            "iBaseHueRad": self.base_hue_rad,
+            "mColorMode": self.color_mode,
         }
 
 
@@ -95,6 +132,30 @@ class UniformManager:
     def set_seed(self, seed: float):
         """Update the random seed."""
         self.standard.seed = seed
+    
+    def set_complexity(self, complexity: int):
+        """Set the complexity/detail level (1-10)."""
+        self.standard.complexity = max(1, min(10, complexity))
+    
+    def set_force(self, force: float):
+        """Set the primary force/intensity (0-10)."""
+        self.standard.force = max(0.0, min(10.0, force))
+    
+    def set_force2(self, force2: float):
+        """Set the secondary force/intensity (0-10)."""
+        self.standard.force2 = max(0.0, min(10.0, force2))
+    
+    def set_base_hue(self, hue_rad: float):
+        """Set the base hue in radians (0-TAU)."""
+        self.standard.base_hue_rad = hue_rad
+    
+    def set_color_mode(self, mode: int):
+        """Set the color mode toggle (0 or 1)."""
+        self.standard.color_mode = mode
+    
+    def set_mouse(self, x: float, y: float, click_x: float = 0.0, click_y: float = 0.0):
+        """Set mouse position."""
+        self.standard.mouse = (x, y, click_x, click_y)
     
     def set_jitter(self, jitter_x: float, jitter_y: float):
         """Set subpixel jitter for accumulation AA."""
